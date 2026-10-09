@@ -63,7 +63,7 @@
         </div>
       </div>
 
-      <!-- OTP VERIFICATION STEP (HIDDEN INITIALLY) -->
+      <!-- OTP VERIFICATION STEP -->
       <div class="row justify-content-center g-2 mt-3" id="otpInputStep" style="display: none;">
         <div class="col-md-5">
           <input type="text" id="userAuthOtp" class="form-control form-control-lg text-center fw-bold letter-spacing-2" placeholder="ENTER 6-DIGIT OTP" maxlength="6">
@@ -81,7 +81,7 @@
       <div id="authAlert" class="mt-3"></div>
     </div>
 
-    <!-- WRAPPER FOR MAIN PORTAL (HIDDEN UNTIL LOGIN SUCCESSFUL) -->
+    <!-- WRAPPER FOR MAIN PORTAL -->
     <div id="authenticatedPortalWrapper" style="display: none;">
 
       <!-- LOGGED-IN STUDENT INFO BANNER -->
@@ -244,7 +244,23 @@
 
                 <div class="col-md-4">
                   <label class="form-label fw-bold small text-muted">Section <span class="text-danger">*</span></label>
-                  <input type="text" id="displaySection" name="section" class="form-control" placeholder="e.g. A, B, Sec-1" required>
+                  <input type="text" id="displaySection" name="section" class="form-control" placeholder="e.g. A, B" required>
+                </div>
+
+                <!-- BATCH / SHIFT SELECTION WITH INSTRUCTION BOX -->
+                <div class="col-12 mt-3">
+                  <div class="alert alert-info py-2 px-3 mb-2 rounded-3 small">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Batch / Shift Selection Instruction:</strong> Courses with multi-shift programs (e.g., BCA) should select their respective shift (Batch A or Batch B). All other single-shift programs can keep <strong>Batch A</strong> selected by default.
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold small text-muted">Shift / Batch Selection <span class="text-danger">*</span></label>
+                  <select id="displayBatch" name="batch" class="form-select form-select-lg" required>
+                    <option value="Batch A" selected>Batch A (Shift I / Default)</option>
+                    <option value="Batch B">Batch B (Shift II)</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -264,7 +280,7 @@
               </div>
             </div>
 
-            <!-- INLINE VALIDATION ALERT FOR STEP 2 -->
+            <!-- INLINE ALERT FOR STEP 2 VALIDATION -->
             <div id="step2Alert" class="mb-3"></div>
 
             <!-- CONFIRMATION -->
@@ -387,7 +403,7 @@
 
 <!-- CLIENT SCRIPT LOGIC -->
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySUmRQwaIqp3sx1_rUa7x3qWffv_iRFkAClyUkeqcJ4srOc7T0kKm5-bM8Lb9iU4SY/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_REPLACE_WITH_YOUR_EXEC_ID/exec";
   var authenticatedStudentEmail = window.authenticatedStudentEmail || "";
 
   window.requestOtp = async function() {
@@ -398,7 +414,7 @@
     alertBox.innerHTML = '';
 
     if (!emailInput || (!emailInput.endsWith('@student.hindustanuniv.ac.in') && !emailInput.endsWith('@gmail.com'))) {
-      alertBox.innerHTML = `<div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please enter a valid @student.hindustanuniv.ac.in or @gmail.com email address.</div>`;
+      alertBox.innerHTML = `<div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please enter a valid @hindustanuniv.ac.in or @gmail.com email address.</div>`;
       return;
     }
 
@@ -558,7 +574,7 @@
         document.getElementById('displayNationality').value = res.data.nationality || '';
         document.getElementById('displayBranch').value = res.data.department || res.data.branch || '';
         document.getElementById('displaySpecialization').value = res.data.specialization || '';
-        
+
         document.getElementById('deptYearBadge').innerText = `Year: ${res.data.year || 'N/A'} | Branch: ${res.data.department || res.data.branch || 'N/A'}`;
         verificationSection.style.display = 'block';
         alertBox.innerHTML = `<div class="alert alert-success py-2 mt-2"><i class="bi bi-check-circle me-1"></i> Record retrieved! Verify details below.</div>`;
@@ -624,6 +640,10 @@
     }
     if (!document.getElementById('displaySection').value.trim()) {
       alertBox.innerHTML = `<div class="alert alert-warning py-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please enter your Section.</div>`;
+      return;
+    }
+    if (!document.getElementById('displayBatch').value) {
+      alertBox.innerHTML = `<div class="alert alert-warning py-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please select your Shift / Batch.</div>`;
       return;
     }
 
@@ -714,6 +734,7 @@
         department: document.getElementById('displayBranch').value,
         specialization: document.getElementById('displaySpecialization').value,
         section: document.getElementById('displaySection').value,
+        batch: document.getElementById('displayBatch').value,
         
         isNameCorrected: document.getElementById('chkNameCorrection').checked,
         isFatherCorrected: document.getElementById('chkFatherCorrection').checked,
@@ -793,7 +814,7 @@
         resBox.innerHTML = `
           <div class="card border-0 bg-light p-3 rounded-3 shadow-sm">
             <h6 class="fw-bold mb-2">Application Status: <span class="badge bg-${badgeColor}">${statusBadge}</span></h6>
-            <div class="small text-muted mb-2"><strong>Register No:</strong> ${d.regNo} | <strong>Name:</strong> ${d.name}</div>
+            <div class="small text-muted mb-2"><strong>Register No:</strong> ${d.regNo} | <strong>Name:</strong> ${d.name} | <strong>Batch:</strong> ${d.batch || 'Batch A'}</div>
             <p class="mb-1"><strong>Correction / Review Notes:</strong> ${d.valStatus || 'None'}</p>
             <hr class="my-2">
             <div class="small">
