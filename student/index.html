@@ -152,7 +152,7 @@
         <!-- STEP 2 & 3 FORM WRAPPER -->
         <form id="studentVerificationForm" onsubmit="return handleVerifiedSubmission(event);">
           
-          <!-- STEP 2: SUMMARY & CORRECTION FORM -->
+          <!-- STEP 2: SUMMARY & PROFILE VERIFICATION FORM -->
           <div id="verificationSection" style="display: none;">
             <div class="card border-0 shadow-sm p-3 p-md-4 mb-4 rounded-4">
               <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
@@ -172,64 +172,32 @@
                 </div>
 
                 <div class="col-md-6">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold small text-muted mb-0">Student Name (10th Certificate)</label>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="chkNameCorrection" onchange="toggleCorrectionField('Name')">
-                      <label class="form-check-label text-danger fw-bold small" for="chkNameCorrection">Correction</label>
-                    </div>
-                  </div>
-                  <input type="text" id="displayStudentName" name="studentName" class="form-control bg-light" readonly required>
+                  <label class="form-label fw-bold small text-muted">Student Name (10th Certificate)</label>
+                  <input type="text" id="displayStudentName" name="studentName" class="form-control" oninput="checkCorrectionState()" required>
                 </div>
 
                 <div class="col-md-6">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold small text-muted mb-0">Father Name (TC Record)</label>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="chkFatherCorrection" onchange="toggleCorrectionField('Father')">
-                      <label class="form-check-label text-danger fw-bold small" for="chkFatherCorrection">Correction</label>
-                    </div>
-                  </div>
-                  <input type="text" id="displayFatherName" name="fatherName" class="form-control bg-light" readonly required>
+                  <label class="form-label fw-bold small text-muted">Father Name (TC Record)</label>
+                  <input type="text" id="displayFatherName" name="fatherName" class="form-control" oninput="checkCorrectionState()" required>
                 </div>
 
                 <div class="col-md-4">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold small text-muted mb-0">Gender</label>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="chkGenderCorrection" onchange="toggleCorrectionField('Gender')">
-                      <label class="form-check-label text-danger fw-bold small" for="chkGenderCorrection">Correction</label>
-                    </div>
-                  </div>
-                  <input type="text" id="displayGender" name="gender" class="form-control bg-light" readonly required>
-                  <select id="selectGender" class="form-select mt-1" style="display:none;">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                  <label class="form-label fw-bold small text-muted">Gender</label>
+                  <select id="selectGender" name="gender" class="form-select" onchange="checkCorrectionState()" required>
+                    <option value="MALE">MALE</option>
+                    <option value="FEMALE">FEMALE</option>
+                    <option value="OTHER">OTHER</option>
                   </select>
                 </div>
 
                 <div class="col-md-4">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold small text-muted mb-0">Date of Birth (TC)</label>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="chkDobCorrection" onchange="toggleCorrectionField('Dob')">
-                      <label class="form-check-label text-danger fw-bold small" for="chkDobCorrection">Correction</label>
-                    </div>
-                  </div>
-                  <input type="text" id="displayDob" name="dob" class="form-control bg-light" readonly required>
-                  <input type="date" id="inputDob" class="form-control mt-1" style="display:none;">
+                  <label class="form-label fw-bold small text-muted">Date of Birth (TC)</label>
+                  <input type="date" id="inputDob" name="dob" class="form-control" onchange="checkCorrectionState()" required>
                 </div>
 
                 <div class="col-md-4">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label fw-bold small text-muted mb-0">Nationality</label>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="chkNationalityCorrection" onchange="toggleCorrectionField('Nationality')">
-                      <label class="form-check-label text-danger fw-bold small" for="chkNationalityCorrection">Correction</label>
-                    </div>
-                  </div>
-                  <input type="text" id="displayNationality" name="nationality" class="form-control bg-light" readonly required>
+                  <label class="form-label fw-bold small text-muted">Nationality</label>
+                  <input type="text" id="displayNationality" name="nationality" class="form-control" oninput="checkCorrectionState()" required>
                 </div>
 
                 <div class="col-md-4">
@@ -405,6 +373,7 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySUmRQwaIqp3sx1_rUa7x3qWffv_iRFkAClyUkeqcJ4srOc7T0kKm5-bM8Lb9iU4SY/exec";
   var authenticatedStudentEmail = window.authenticatedStudentEmail || "";
+  var originalFetchedData = null;
 
   window.requestOtp = async function() {
     const emailInput = document.getElementById('userAuthEmail').value.trim().toLowerCase();
@@ -566,11 +535,12 @@
         
         alreadySubmittedCard.style.display = 'block';
       } else if (res.success && res.data) {
+        originalFetchedData = res.data;
         document.getElementById('displayRegNo').value = res.data.registerNumber || regNo;
         document.getElementById('displayStudentName').value = res.data.studentName || '';
         document.getElementById('displayFatherName').value = res.data.fatherName || '';
-        document.getElementById('displayGender').value = res.data.gender || '';
-        document.getElementById('displayDob').value = res.data.dob || '';
+        document.getElementById('selectGender').value = (res.data.gender || 'MALE').toUpperCase();
+        document.getElementById('inputDob').value = res.data.dob || '';
         document.getElementById('displayNationality').value = res.data.nationality || '';
         document.getElementById('displayBranch').value = res.data.department || res.data.branch || '';
         document.getElementById('displaySpecialization').value = res.data.specialization || '';
@@ -578,6 +548,7 @@
         document.getElementById('deptYearBadge').innerText = `Year: ${res.data.year || 'N/A'} | Branch: ${res.data.department || res.data.branch || 'N/A'}`;
         verificationSection.style.display = 'block';
         alertBox.innerHTML = `<div class="alert alert-success py-2 mt-2"><i class="bi bi-check-circle me-1"></i> Record retrieved! Verify details below.</div>`;
+        checkCorrectionState();
       } else {
         alertBox.innerHTML = `<div class="alert alert-danger py-2 mt-2"><i class="bi bi-x-circle me-1"></i> ${res.message || 'Register Number not found.'}</div>`;
       }
@@ -586,44 +557,23 @@
     }
   };
 
-  window.toggleCorrectionField = function(field) {
-    const isChecked = document.getElementById(`chk${field}Correction`).checked;
+  function checkCorrectionState() {
+    if (!originalFetchedData) return;
 
-    if (field === 'Gender') {
-      document.getElementById('displayGender').style.display = isChecked ? 'none' : 'block';
-      document.getElementById('selectGender').style.display = isChecked ? 'block' : 'none';
-    } else if (field === 'Dob') {
-      document.getElementById('displayDob').style.display = isChecked ? 'none' : 'block';
-      document.getElementById('inputDob').style.display = isChecked ? 'block' : 'none';
-    } else {
-      let elementId = `display${field}`;
-      if (field === 'Name') elementId = 'displayStudentName';
-      if (field === 'Father') elementId = 'displayFatherName';
+    const currentName = document.getElementById('displayStudentName').value.trim();
+    const currentFather = document.getElementById('displayFatherName').value.trim();
+    const currentGender = document.getElementById('selectGender').value.trim();
+    const currentDob = document.getElementById('inputDob').value.trim();
+    const currentNat = document.getElementById('displayNationality').value.trim();
 
-      const inputEl = document.getElementById(elementId);
-      if (inputEl) {
-        inputEl.readOnly = !isChecked;
-        if (isChecked) {
-          inputEl.classList.remove('bg-light');
-          inputEl.classList.add('border-warning', 'bg-white');
-          inputEl.focus();
-        } else {
-          inputEl.classList.add('bg-light');
-          inputEl.classList.remove('border-warning', 'bg-white');
-        }
-      }
-    }
-    updateProofVisibility();
-  };
+    const nameChanged = currentName.toLowerCase() !== (originalFetchedData.studentName || '').trim().toLowerCase();
+    const fatherChanged = currentFather.toLowerCase() !== (originalFetchedData.fatherName || '').trim().toLowerCase();
+    const genderChanged = currentGender.toLowerCase() !== (originalFetchedData.gender || '').trim().toLowerCase();
+    const dobChanged = currentDob !== (originalFetchedData.dob || '').trim();
+    const natChanged = currentNat.toLowerCase() !== (originalFetchedData.nationality || '').trim().toLowerCase();
 
-  function updateProofVisibility() {
-    const nameChk = document.getElementById('chkNameCorrection').checked;
-    const fatherChk = document.getElementById('chkFatherCorrection').checked;
-    const dobChk = document.getElementById('chkDobCorrection').checked;
-    const natChk = document.getElementById('chkNationalityCorrection').checked;
-
-    const show10th = nameChk;
-    const showTc = fatherChk || dobChk || natChk;
+    const show10th = nameChanged;
+    const showTc = fatherChanged || genderChanged || dobChanged || natChanged;
 
     document.getElementById('box10thProof').style.display = show10th ? 'block' : 'none';
     document.getElementById('boxTcProof').style.display = showTc ? 'block' : 'none';
@@ -647,7 +597,9 @@
       return;
     }
 
-    if (document.getElementById('chkNameCorrection').checked) {
+    const currentName = document.getElementById('displayStudentName').value.trim();
+    const nameChanged = originalFetchedData && currentName.toLowerCase() !== (originalFetchedData.studentName || '').trim().toLowerCase();
+    if (nameChanged) {
       const f10 = document.getElementById('proof10thFileInput');
       if (!f10 || !f10.files || !f10.files[0]) {
         alertBox.innerHTML = `<div class="alert alert-danger py-2"><i class="bi bi-file-earmark-x-fill me-2"></i>Please upload your 10th Marksheet Proof Document for Name correction.</div>`;
@@ -655,10 +607,18 @@
       }
     }
 
-    const requiresTc = document.getElementById('chkFatherCorrection').checked ||
-                       document.getElementById('chkGenderCorrection').checked ||
-                       document.getElementById('chkDobCorrection').checked ||
-                       document.getElementById('chkNationalityCorrection').checked;
+    const currentFather = document.getElementById('displayFatherName').value.trim();
+    const currentGender = document.getElementById('selectGender').value.trim();
+    const currentDob = document.getElementById('inputDob').value.trim();
+    const currentNat = document.getElementById('displayNationality').value.trim();
+
+    const requiresTc = originalFetchedData && (
+      currentFather.toLowerCase() !== (originalFetchedData.fatherName || '').trim().toLowerCase() ||
+      currentGender.toLowerCase() !== (originalFetchedData.gender || '').trim().toLowerCase() ||
+      currentDob !== (originalFetchedData.dob || '').trim() ||
+      currentNat.toLowerCase() !== (originalFetchedData.nationality || '').trim().toLowerCase()
+    );
+
     if (requiresTc) {
       const fTc = document.getElementById('proofTcFileInput');
       if (!fTc || !fTc.files || !fTc.files[0]) {
@@ -722,25 +682,31 @@
       const proof10thBase64 = file10th ? await convertFileToBase64(file10th) : null;
       const proofTcBase64 = fileTc ? await convertFileToBase64(fileTc) : null;
 
+      const currentName = document.getElementById('displayStudentName').value.trim();
+      const currentFather = document.getElementById('displayFatherName').value.trim();
+      const currentGender = document.getElementById('selectGender').value.trim();
+      const currentDob = document.getElementById('inputDob').value.trim();
+      const currentNat = document.getElementById('displayNationality').value.trim();
+
       const payload = {
         action: "submitStudentApplication",
         registerNumber: document.getElementById('displayRegNo').value,
         studentEmail: document.getElementById('displayEmail').value,
-        studentName: document.getElementById('displayStudentName').value,
-        fatherName: document.getElementById('displayFatherName').value,
-        gender: document.getElementById('chkGenderCorrection').checked ? document.getElementById('selectGender').value : document.getElementById('displayGender').value,
-        dob: document.getElementById('chkDobCorrection').checked ? document.getElementById('inputDob').value : document.getElementById('displayDob').value,
-        nationality: document.getElementById('displayNationality').value,
+        studentName: currentName,
+        fatherName: currentFather,
+        gender: currentGender,
+        dob: currentDob,
+        nationality: currentNat,
         department: document.getElementById('displayBranch').value,
         specialization: document.getElementById('displaySpecialization').value,
         section: document.getElementById('displaySection').value,
         batch: document.getElementById('displayBatch').value,
         
-        isNameCorrected: document.getElementById('chkNameCorrection').checked,
-        isFatherCorrected: document.getElementById('chkFatherCorrection').checked,
-        isGenderCorrected: document.getElementById('chkGenderCorrection').checked,
-        isDobCorrected: document.getElementById('chkDobCorrection').checked,
-        isNationalityCorrected: document.getElementById('chkNationalityCorrection').checked,
+        isNameCorrected: originalFetchedData ? currentName.toLowerCase() !== (originalFetchedData.studentName || '').trim().toLowerCase() : false,
+        isFatherCorrected: originalFetchedData ? currentFather.toLowerCase() !== (originalFetchedData.fatherName || '').trim().toLowerCase() : false,
+        isGenderCorrected: originalFetchedData ? currentGender.toLowerCase() !== (originalFetchedData.gender || '').trim().toLowerCase() : false,
+        isDobCorrected: originalFetchedData ? currentDob !== (originalFetchedData.dob || '').trim() : false,
+        isNationalityCorrected: originalFetchedData ? currentNat.toLowerCase() !== (originalFetchedData.nationality || '').trim().toLowerCase() : false,
 
         photoData: photoBase64,
         proof10thData: proof10thBase64,
